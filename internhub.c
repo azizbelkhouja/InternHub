@@ -12,15 +12,37 @@ typedef struct {
     char applicationMethod[MAX_STRING_LENGTH];
 } InternshipApplication;
 
+int isValidDate(char *date) {
+    int dd, mm, yyyy;
+
+    if (sscanf(date, "%d/%d/%d", &dd, &mm, &yyyy) != 3)
+        return 0;
+
+    if (yyyy < 2000 || yyyy > 2025)
+        return 0;
+    if (mm < 1 || mm > 12)
+        return 0;
+    if (dd < 1 || dd > 31)
+        return 0;
+
+    return 1;
+}
+
 void addApplication(InternshipApplication *applications, int *count) {
     if (*count >= MAX_APPLICATIONS) {
         printf("Maximum number of applications reached.\n");
         return;
     }
 
-    printf("Enter the date you applied (e.g., 2024-08-22): ");
-    fgets(applications[*count].date, MAX_STRING_LENGTH, stdin);
-    applications[*count].date[strcspn(applications[*count].date, "\n")] = 0;
+    do {
+        printf("Enter the date you applied (dd/mm/yyyy): ");
+        fgets(applications[*count].date, MAX_STRING_LENGTH, stdin);
+        applications[*count].date[strcspn(applications[*count].date, "\n")] = 0;
+        
+        if (!isValidDate(applications[*count].date)) {
+            printf("Invalid date format or value. Please try again.\n");
+        }
+    } while (!isValidDate(applications[*count].date));
 
     printf("Enter the company name: ");
     fgets(applications[*count].company, MAX_STRING_LENGTH, stdin);
@@ -39,7 +61,7 @@ void addApplication(InternshipApplication *applications, int *count) {
     printf("5. Almalaurea\n");
     printf("Enter the number of your choice: ");
     scanf("%d", &methodChoice);
-    getchar();
+    getchar(); 
 
     switch (methodChoice) {
         case 1:
