@@ -4,6 +4,7 @@
 
 #define MAX_APPLICATIONS 100
 #define MAX_STRING_LENGTH 100
+#define FILENAME "applications.txt"
 
 typedef struct {
     char date[MAX_STRING_LENGTH];
@@ -26,6 +27,33 @@ int isValidDate(char *date) {
         return 0;
 
     return 1;
+}
+
+void saveApplicationToFile(InternshipApplication *application) {
+    FILE *file = fopen(FILENAME, "a");
+    if (file == NULL) {
+        printf("Error opening file for writing.\n");
+        return;
+    }
+    fprintf(file, "%s|%s|%s|%s\n", application->date, application->company, application->jobTitle, application->applicationMethod);
+    fclose(file);
+}
+
+void loadApplicationsFromFile(InternshipApplication *applications, int *count) {
+    FILE *file = fopen(FILENAME, "r");
+    if (file == NULL) {
+        return;
+    }
+    
+    while (fscanf(file, "%[^|]|%[^|]|%[^|]|%[^\n]\n", 
+                  applications[*count].date, 
+                  applications[*count].company, 
+                  applications[*count].jobTitle, 
+                  applications[*count].applicationMethod) != EOF) {
+        (*count)++;
+    }
+
+    fclose(file);
 }
 
 void addApplication(InternshipApplication *applications, int *count) {
@@ -85,6 +113,8 @@ void addApplication(InternshipApplication *applications, int *count) {
             break;
     }
 
+    saveApplicationToFile(&applications[*count]);
+
     (*count)++;
 }
 
@@ -110,6 +140,8 @@ int main() {
     InternshipApplication applications[MAX_APPLICATIONS];
     int count = 0;
     int choice;
+
+    loadApplicationsFromFile(applications, &count);
 
     while (1) {
         printf("\nInternship Application Tracker\n");
