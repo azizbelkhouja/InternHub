@@ -11,6 +11,7 @@ typedef struct {
     char company[MAX_STRING_LENGTH];
     char jobTitle[MAX_STRING_LENGTH];
     char applicationMethod[MAX_STRING_LENGTH];
+    char status[MAX_STRING_LENGTH];  // New field to store the application status
 } InternshipApplication;
 
 int isValidDate(char *date) {
@@ -35,7 +36,7 @@ void saveApplicationToFile(InternshipApplication *application) {
         printf("Error opening file for writing.\n");
         return;
     }
-    fprintf(file, "%s|%s|%s|%s\n", application->date, application->company, application->jobTitle, application->applicationMethod);
+    fprintf(file, "%s|%s|%s|%s|%s\n", application->date, application->company, application->jobTitle, application->applicationMethod, application->status);
     fclose(file);
 }
 
@@ -45,11 +46,12 @@ void loadApplicationsFromFile(InternshipApplication *applications, int *count) {
         return;
     }
     
-    while (fscanf(file, "%[^|]|%[^|]|%[^|]|%[^\n]\n", 
+    while (fscanf(file, "%[^|]|%[^|]|%[^|]|%[^|]|%[^\n]\n", 
                   applications[*count].date, 
                   applications[*count].company, 
                   applications[*count].jobTitle, 
-                  applications[*count].applicationMethod) != EOF) {
+                  applications[*count].applicationMethod,
+                  applications[*count].status) != EOF) {
         (*count)++;
     }
 
@@ -67,11 +69,11 @@ int compareDates(const void *a, const void *b) {
     sscanf(app2->date, "%d/%d/%d", &dd2, &mm2, &yyyy2);
     
     if (yyyy1 != yyyy2) {
-        return yyyy2 - yyyy1; // Compare years
+        return yyyy2 - yyyy1; 
     } else if (mm1 != mm2) {
-        return mm2 - mm1; // Compare months
+        return mm2 - mm1; 
     } else {
-        return dd2 - dd1; // Compare days
+        return dd2 - dd1; 
     }
 }
 
@@ -132,9 +134,66 @@ void addApplication(InternshipApplication *applications, int *count) {
             break;
     }
 
+    strcpy(applications[*count].status, "Pending"); 
+
     saveApplicationToFile(&applications[*count]);
 
     (*count)++;
+}
+
+void updateApplicationStatus(InternshipApplication *applications, int count) {
+    if (count == 0) {
+        printf("No applications to update.\n");
+        return;
+    }
+
+    char companyName[MAX_STRING_LENGTH];
+    printf("Enter the company name of the application you want to update: ");
+    fgets(companyName, MAX_STRING_LENGTH, stdin);
+    companyName[strcspn(companyName, "\n")] = 0;
+
+    for (int i = 0; i < count; i++) {
+        if (strcmp(applications[i].company, companyName) == 0) {
+            int statusChoice;
+            printf("Select the new status:\n");
+            printf("1. Accepted\n");
+            printf("2. Rejected\n");
+            printf("3. Pending\n");
+            printf("Enter the number of your choice: ");
+            scanf("%d", &statusChoice);
+            getchar();
+
+            switch (statusChoice) {
+                case 1:
+                    strcpy(applications[i].status, "Accepted");
+                    break;
+                case 2:
+                    strcpy(applications[i].status, "Rejected");
+                    break;
+                case 3:
+                    strcpy(applications[i].status, "Pending");
+                    break;
+                default:
+                    printf("Invalid choice. Status not updated.\n");
+                    return;
+            }
+
+            FILE *file = fopen(FILENAME, "w");
+            if (file == NULL) {
+                printf("Error opening file for writing.\n");
+                return;
+            }
+            for (int j = 0; j < count; j++) {
+                fprintf(file, "%s|%s|%s|%s|%s\n", applications[j].date, applications[j].company, applications[j].jobTitle, applications[j].applicationMethod, applications[j].status);
+            }
+            fclose(file);
+
+            printf("Application status updated successfully.\n");
+            return;
+        }
+    }
+
+    printf("No application found for the specified company.\n");
 }
 
 void displayApplications(InternshipApplication *applications, int count) {
@@ -153,6 +212,7 @@ void displayApplications(InternshipApplication *applications, int count) {
         printf("Company Name: %s\n", applications[i].company);
         printf("Job Title: %s\n", applications[i].jobTitle);
         printf("Application Method: %s\n", applications[i].applicationMethod);
+        printf("Status: %s\n", applications[i].status);
         printf("------------------------------------------------------------\n");
     }
 }
@@ -168,7 +228,8 @@ int main() {
         printf("\nInternship Application Tracker\n");
         printf("1. Add New Application\n");
         printf("2. Display All Applications\n");
-        printf("3. Exit\n");
+        printf("3. Update Application Status\n"); 
+        printf("4. Exit\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
         getchar();
@@ -181,6 +242,9 @@ int main() {
                 displayApplications(applications, count);
                 break;
             case 3:
+                updateApplicationStatus(applications, count);
+                break;
+            case 4:
                 printf("Exiting...\n");
                 exit(0);
             default:
