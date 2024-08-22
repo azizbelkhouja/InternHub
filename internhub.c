@@ -30,9 +30,38 @@ void addApplication(InternshipApplication *applications, int *count) {
     fgets(applications[*count].jobTitle, MAX_STRING_LENGTH, stdin);
     applications[*count].jobTitle[strcspn(applications[*count].jobTitle, "\n")] = 0;
 
-    printf("Enter the application method (LinkedIn, Phone, Cold Mail, Indeed, Almalaurea): ");
-    fgets(applications[*count].applicationMethod, MAX_STRING_LENGTH, stdin);
-    applications[*count].applicationMethod[strcspn(applications[*count].applicationMethod, "\n")] = 0;
+    int methodChoice;
+    printf("Select the application method:\n");
+    printf("1. LinkedIn\n");
+    printf("2. Phone\n");
+    printf("3. Cold Mail\n");
+    printf("4. Indeed\n");
+    printf("5. Almalaurea\n");
+    printf("Enter the number of your choice: ");
+    scanf("%d", &methodChoice);
+    getchar();
+
+    switch (methodChoice) {
+        case 1:
+            strcpy(applications[*count].applicationMethod, "LinkedIn");
+            break;
+        case 2:
+            strcpy(applications[*count].applicationMethod, "Phone");
+            break;
+        case 3:
+            strcpy(applications[*count].applicationMethod, "Cold Mail");
+            break;
+        case 4:
+            strcpy(applications[*count].applicationMethod, "Indeed");
+            break;
+        case 5:
+            strcpy(applications[*count].applicationMethod, "Almalaurea");
+            break;
+        default:
+            printf("Invalid choice. Defaulting to 'Unknown'.\n");
+            strcpy(applications[*count].applicationMethod, "Unknown");
+            break;
+    }
 
     (*count)++;
 }
