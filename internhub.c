@@ -56,6 +56,25 @@ void loadApplicationsFromFile(InternshipApplication *applications, int *count) {
     fclose(file);
 }
 
+int compareDates(const void *a, const void *b) {
+    InternshipApplication *app1 = (InternshipApplication *)a;
+    InternshipApplication *app2 = (InternshipApplication *)b;
+    
+    int dd1, mm1, yyyy1;
+    int dd2, mm2, yyyy2;
+    
+    sscanf(app1->date, "%d/%d/%d", &dd1, &mm1, &yyyy1);
+    sscanf(app2->date, "%d/%d/%d", &dd2, &mm2, &yyyy2);
+    
+    if (yyyy1 != yyyy2) {
+        return yyyy2 - yyyy1; // Compare years
+    } else if (mm1 != mm2) {
+        return mm2 - mm1; // Compare months
+    } else {
+        return dd2 - dd1; // Compare days
+    }
+}
+
 void addApplication(InternshipApplication *applications, int *count) {
     if (*count >= MAX_APPLICATIONS) {
         printf("Maximum number of applications reached.\n");
@@ -124,7 +143,9 @@ void displayApplications(InternshipApplication *applications, int count) {
         return;
     }
 
-    printf("\nInternship Applications:\n");
+    qsort(applications, count, sizeof(InternshipApplication), compareDates);
+
+    printf("\nInternship Applications (Sorted by Date - Latest to Earliest):\n");
     printf("------------------------------------------------------------\n");
     for (int i = 0; i < count; i++) {
         printf("Application %d:\n", i + 1);
