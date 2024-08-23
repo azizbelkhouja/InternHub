@@ -254,16 +254,13 @@ void deleteApplication(InternshipApplication *applications, int *count) {
 
         if (strcmp(confirm, "yes") == 0) {
             *count = 0;
-            FILE *file = fopen(FILENAME, "w");
-            if (file != NULL) {
-                fclose(file);
-            }
+            saveAllApplicationsToFile(applications, *count);
             printf("All applications deleted successfully.\n");
         } else {
-            printf("Deletion of all applications cancelled.\n");
+            printf("Deletion cancelled.\n");
         }
     } else {
-        printf("Invalid choice. Deletion cancelled.\n");
+        printf("Invalid choice.\n");
     }
 }
 
@@ -275,16 +272,84 @@ void displayApplications(InternshipApplication *applications, int count) {
 
     qsort(applications, count, sizeof(InternshipApplication), compareDates);
 
-    printf("\nInternship Applications (Sorted by Date - Latest to Earliest):\n");
-    printf("------------------------------------------------------------\n");
+    printf("\nAll Applications:\n");
     for (int i = 0; i < count; i++) {
-        printf("Application %d:\n", i + 1);
         printf("Date Applied: %s\n", applications[i].date);
         printf("Company Name: %s\n", applications[i].company);
         printf("Job Title: %s\n", applications[i].jobTitle);
         printf("Application Method: %s\n", applications[i].applicationMethod);
-        printf("Status: %s\n", applications[i].status); 
+        printf("Status: %s\n", applications[i].status);
         printf("------------------------------------------------------------\n");
+    }
+}
+
+void searchApplications(InternshipApplication *applications, int count) {
+    if (count == 0) {
+        printf("No applications available to search.\n");
+        return;
+    }
+
+    int searchChoice;
+    char searchTerm[MAX_STRING_LENGTH];
+
+    printf("Search by:\n");
+    printf("1. Company Name\n");
+    printf("2. Job Title\n");
+    printf("3. Date Applied\n");
+    printf("4. Status\n");
+    printf("Enter the number of your choice: ");
+    scanf("%d", &searchChoice);
+    getchar(); 
+
+    printf("Enter the search term: ");
+    fgets(searchTerm, MAX_STRING_LENGTH, stdin);
+    searchTerm[strcspn(searchTerm, "\n")] = 0; 
+
+    int found = 0;
+
+    for (int i = 0; i < count; i++) {
+        int match = 0;
+
+        switch (searchChoice) {
+            case 1:
+                if (strstr(applications[i].company, searchTerm) != NULL) {
+                    match = 1;
+                }
+                break;
+            case 2:
+                if (strstr(applications[i].jobTitle, searchTerm) != NULL) {
+                    match = 1;
+                }
+                break;
+            case 3:
+                if (strstr(applications[i].date, searchTerm) != NULL) {
+                    match = 1;
+                }
+                break;
+            case 4:
+                if (strstr(applications[i].status, searchTerm) != NULL) {
+                    match = 1;
+                }
+                break;
+            default:
+                printf("Invalid search choice.\n");
+                return;
+        }
+
+        if (match) {
+            printf("\nMatching Application Found:\n");
+            printf("Date Applied: %s\n", applications[i].date);
+            printf("Company Name: %s\n", applications[i].company);
+            printf("Job Title: %s\n", applications[i].jobTitle);
+            printf("Application Method: %s\n", applications[i].applicationMethod);
+            printf("Status: %s\n", applications[i].status);
+            printf("------------------------------------------------------------\n");
+            found = 1;
+        }
+    }
+
+    if (!found) {
+        printf("No matching applications found.\n");
     }
 }
 
@@ -299,12 +364,13 @@ int main() {
         printf("\nInternship Application Tracker\n");
         printf("1. Add New Application\n");
         printf("2. Display All Applications\n");
-        printf("3. Update Application Status\n"); 
+        printf("3. Update Application Status\n");
         printf("4. Delete Application(s)\n");
-        printf("5. Exit\n");
+        printf("5. Search Applications\n");
+        printf("6. Exit\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
-        getchar();
+        getchar(); 
 
         switch (choice) {
             case 1:
@@ -320,6 +386,9 @@ int main() {
                 deleteApplication(applications, &count);
                 break;
             case 5:
+                searchApplications(applications, count);
+                break;
+            case 6:
                 printf("Exiting...\n");
                 exit(0);
             default:
