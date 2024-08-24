@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #define MAX_APPLICATIONS 100
 #define MAX_STRING_LENGTH 100
@@ -20,13 +21,34 @@ int isValidDate(char *date) {
     if (sscanf(date, "%d/%d/%d", &dd, &mm, &yyyy) != 3)
         return 0;
 
+    // Check year range
     if (yyyy < 2000 || yyyy > 2025)
         return 0;
+    
+    // Check month range
     if (mm < 1 || mm > 12)
         return 0;
-    if (dd < 1 || dd > 31)
+
+    // Check days in month
+    int daysInMonth[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+    // Leap year adjustment for February
+    if (mm == 2 && ((yyyy % 4 == 0 && yyyy % 100 != 0) || (yyyy % 400 == 0))) {
+        daysInMonth[1] = 29;
+    }
+
+    if (dd < 1 || dd > daysInMonth[mm - 1])
         return 0;
 
+    return 1;
+}
+
+int isValidCompanyName(char *company) {
+    for (int i = 0; company[i] != '\0'; i++) {
+        if (!isalnum(company[i]) && company[i] != ' ' && company[i] != '&' && company[i] != '.') {
+            return 0; // Prohibited characters found
+        }
+    }
     return 1;
 }
 
@@ -105,9 +127,15 @@ void addApplication(InternshipApplication *applications, int *count) {
         }
     } while (!isValidDate(applications[*count].date));
 
-    printf("Enter the company name: ");
-    fgets(applications[*count].company, MAX_STRING_LENGTH, stdin);
-    applications[*count].company[strcspn(applications[*count].company, "\n")] = 0;
+    do {
+        printf("Enter the company name: ");
+        fgets(applications[*count].company, MAX_STRING_LENGTH, stdin);
+        applications[*count].company[strcspn(applications[*count].company, "\n")] = 0;
+
+        if (!isValidCompanyName(applications[*count].company)) {
+            printf("Invalid company name. Please use only letters, numbers, spaces, '&', and '.'.\n");
+        }
+    } while (!isValidCompanyName(applications[*count].company));
 
     printf("Enter the job title: ");
     fgets(applications[*count].jobTitle, MAX_STRING_LENGTH, stdin);
@@ -215,41 +243,55 @@ void searchApplications(InternshipApplication *applications, int count) {
     printf("  2. Job Title\n");
     printf("Enter the number corresponding to your choice: ");
     scanf("%d", &searchChoice);
-    getchar(); 
+    getchar();
 
-    switch (searchChoice) {
-        case 1:
-            printf("\nEnter the company name to search: ");
-            break;
-        case 2:
-            printf("\nEnter the job title to search: ");
-            break;
-        default:
-            printf("Invalid choice. Returning to main menu.\n");
-            return;
-    }
+    if (searchChoice == 1) {
+        printf("\nEnter the company name to search: ");
+        fgets(searchQuery, MAX_STRING_LENGTH, stdin);
+        searchQuery[strcspn(searchQuery, "\n")] = 0;
 
-    fgets(searchQuery, MAX_STRING_LENGTH, stdin);
-    searchQuery[strcspn(searchQuery, "\n")] = 0;
-
-    printf("\nSearch Results:\n");
-    printf("------------------------------------------------------------\n");
-    int found = 0;
-    for (int i = 0; i < count; i++) {
-        if ((searchChoice == 1 && strcasecmp(applications[i].company, searchQuery) == 0) ||
-            (searchChoice == 2 && strcasecmp(applications[i].jobTitle, searchQuery) == 0)) {
-            printf("Date Applied      : %s\n", applications[i].date);
-            printf("Company Name      : %s\n", applications[i].company);
-            printf("Job Title         : %s\n", applications[i].jobTitle);
-            printf("Application Method: %s\n", applications[i].applicationMethod);
-            printf("Status            : %s\n", applications[i].status);
-            printf("------------------------------------------------------------\n");
-            found = 1;
+        printf("\nSearch Results:\n");
+        printf("------------------------------------------------------------\n");
+        int found = 0;
+        for (int i = 0; i < count; i++) {
+            if (strcasecmp(applications[i].company, searchQuery) == 0) {
+                printf("Date Applied      : %s\n", applications[i].date);
+                printf("Company Name      : %s\n", applications[i].company);
+                printf("Job Title         : %s\n", applications[i].jobTitle);
+                printf("Application Method: %s\n", applications[i].applicationMethod);
+                printf("Status            : %s\n", applications[i].status);
+                printf("------------------------------------------------------------\n");
+                found = 1;
+            }
         }
-    }
+        if (!found) {
+            printf("No matching applications found.\n");
+        }
 
-    if (!found) {
-        printf("No matching applications found.\n");
+    } else if (searchChoice == 2) {
+        printf("\nEnter the job title to search: ");
+        fgets(searchQuery, MAX_STRING_LENGTH, stdin);
+        searchQuery[strcspn(searchQuery, "\n")] = 0;
+
+        printf("\nSearch Results:\n");
+        printf("------------------------------------------------------------\n");
+        int found = 0;
+        for (int i = 0; i < count; i++) {
+            if (strcasecmp(applications[i].jobTitle, searchQuery) == 0) {
+                printf("Date Applied      : %s\n", applications[i].date);
+                printf("Company Name      : %s\n", applications[i].company);
+                printf("Job Title         : %s\n", applications[i].jobTitle);
+                printf("Application Method: %s\n", applications[i].applicationMethod);
+                printf("Status            : %s\n", applications[i].status);
+                printf("------------------------------------------------------------\n");
+                found = 1;
+            }
+        }
+        if (!found) {
+            printf("No matching applications found.\n");
+        }
+    } else {
+        printf("\nInvalid choice. Returning to main menu.\n");
     }
 }
 
