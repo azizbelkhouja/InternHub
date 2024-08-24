@@ -35,9 +35,9 @@ A console-based application to manage and track internship applications. This pr
 
 2. **Run the Program**
 
- ```sh
-./internhub
-   ```
+    ```sh
+   ./internhub
+      ```
 # Usage
 1. Register a New User
 
