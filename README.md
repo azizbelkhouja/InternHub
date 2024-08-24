@@ -1,48 +1,128 @@
-# Internship Application Tracker
+# Internship Application Tracker - InternHub
 
-[![Run on Repl.it](https://replit.com/badge/github/azizbelkhouja/InternHub)](https://replit.com/github/azizbelkhouja/InternHub)
+[![Run on Repl.it](https://replit.com/badge/github/azizbelkhouja/Internhub)](https://replit.com/github/azizbelkhouja/InternHub)
 
-
-This C program is a simple console-based application designed to help you track your internship applications. You can add, view, update, and delete your applications, as well as keep track of the application status. The applications are stored in a text file, making it easy to save and retrieve data.
+A console-based application to manage and track internship applications. This project allows users to add, list, and analyze their internship applications, as well as perform user authentication and data management tasks.
 
 ## Features
 
-- **Add New Application**: Record the details of your internship applications, including the date of application, company name, job title, application method, and status (default is "Pending").
-- **Display All Applications**: View all your applications sorted by date, from the latest to the earliest.
-- **Update Application Status**: Update the status of an existing application (Accepted, Rejected, Pending).
-- **Delete Application(s)**: Delete a specific application or all applications from the record, with confirmation prompts.
-- **File Storage**: All applications are stored in a text file (`applications.txt`), ensuring persistence across sessions.
+- **User Authentication**: Register and log in with a username and password. Passwords are securely encrypted.
+- **Add Application**: Record details of internship applications including date, company, job title, application method, and status.
+- **List Applications**: View all recorded applications sorted by date.
+- **View Statistics**: Generate statistics including the total number of applications and application status counts.
+- **Create Backup**: Create a backup of the application data file.
+- **Restore from Backup**: Restore application data from a backup file.
 
-## Usage
+## Requirements
 
-### Adding an Application
-1. Choose the "Add New Application" option from the menu.
-2. Enter the required details:
-   - **Date of Application**: Format should be `dd/mm/yyyy`. The program validates the date to ensure it's within the range from 01/01/2000 to 31/12/2025.
-   - **Company Name**: Name of the company you're applying to.
-   - **Job Title**: The title of the job you're applying for.
-   - **Application Method**: Choose from LinkedIn, Phone, Cold Mail, Indeed, or Almalaurea.
-   - **Status**: Automatically set to "Pending."
+- A C compiler (e.g., GCC)
+- Standard C library
 
-### Displaying All Applications
-1. Choose the "Display All Applications" option from the menu.
-2. The program will list all applications sorted by the application date, showing the latest applications first.
+## File Structure
 
-### Updating an Application Status
-1. Choose the "Update Application Status" option from the menu.
-2. Enter the company name of the application you want to update.
-3. Select the new status (Accepted, Rejected, Pending).
-4. The program will update the status in the file.
+- `applications.txt`: Stores encrypted internship application data.
+- `backup.txt`: Stores backup of the application data.
+- `users.txt`: Stores encrypted user credentials.
+- `application_tracker.c`: Main source code file.
 
-### Deleting Applications
-1. Choose the "Delete Application(s)" option from the menu.
-2. Select whether to delete one specific application or all applications.
-   - **Single Application**: Enter the company name and job title. The program will prompt for confirmation before deletion.
-   - **All Applications**: The program will prompt for confirmation before deleting all records.
+## Compilation and Execution
 
-### Exiting the Program
-- Choose the "Exit" option from the menu to safely close the program.
+1. **Compile the Program**
 
-## File Storage
+   ```sh
+   gcc -o internhub internhub.c
+   ```
 
-All application data is stored in `applications.txt`, which is created in the same directory as the program. This file is used to load the data when the program starts and save any updates during the session.
+2. **Run the Program**
+
+ ```sh
+./internhub
+   ```
+# Usage
+1. Register a New User
+
+- Select option 1 from the main menu to register.
+- Enter a username and password when prompted. Passwords are encrypted before being saved.
+
+2. Log In
+
+- Select option 2 from the main menu to log in.
+- Enter the registered username and password. Passwords are checked against the encrypted values.
+
+3. Add an Application
+
+- After logging in, select option 1 from the main menu.
+- Enter the application details when prompted:
+  + Date (format: dd/mm/yyyy)
+  + Company Name
+  + Job Title
+  + Application Method
+  + Status (Pending, Interviewed, Rejected, Accepted)
+
+4. List Applications
+
+- Select option 2 from the main menu to list all applications.
+- Applications are displayed in reverse chronological order.
+
+5. View Statistics
+
+- Select option 3 from the main menu to view statistics on application statuses and most applied-to companies.
+
+6. Create Backup
+
+- Select option 4 from the main menu to create a backup of the application data file (applications.txt).
+
+7. Restore from Backup
+
+- Select option 5 from the main menu to restore application data from the backup file (backup.txt).
+
+8. Exit
+
+- Select option 6 from the main menu to exit the program.
+
+# **Code Overview**
+
+- Encryption and Decryption: Simple Caesar cipher used for encrypting and decrypting sensitive data.
+- File Operations: Read and write application data and user credentials to/from text files.
+- Statistics: Computes and displays application statistics.
+
+**Example**
+
+*Registering a User*
+
+ ```sh
+Enter username: johndoe
+Enter password: mypassword
+User registered successfully.
+ ```
+
+*Adding an Application*
+   
+   ```sh
+Enter date (dd/mm/yyyy): 23/08/2024
+Enter company name: Tech Innovations Ltd
+Enter job title: Software Engineer Intern
+Enter application method (e.g., online, referral, etc.): Online Application
+Enter application status (Pending, Interviewed, Rejected, Accepted): Pending
+Application added successfully.
+   ```
+*Viewing Statistics*
+
+ ```sh
+
+Statistics:
+------------------------------------------------------------
+Total Applications: 3
+Pending: 1
+Interviewed: 1
+Rejected: 0
+Accepted: 1
+
+Most Applied-to Companies:
+Tech Innovations Ltd: 1
+Company A: 2
+------------------------------------------------------------
+   ```
+
+# Contributing
+Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
