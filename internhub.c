@@ -23,6 +23,25 @@ typedef struct {
     char password[MAX_STRING_LENGTH];
 } User;
 
+// Function prototypes
+void encrypt(char *text, int shift);
+void decrypt(char *text, int shift);
+int isValidDate(char *date);
+int isValidCompanyName(char *company);
+void saveApplicationToFile(InternshipApplication *application);
+void saveAllApplicationsToFile(InternshipApplication *applications, int count);
+void loadApplicationsFromFile(InternshipApplication *applications, int *count);
+void createBackup();
+void restoreFromBackup();
+void displayStatistics(InternshipApplication *applications, int count);
+int compareDates(const void *a, const void *b);
+void addApplication(InternshipApplication *applications, int *count);
+void listApplications(InternshipApplication *applications, int count);
+void registerUser();
+int authenticateUser();
+void displayMainMenu(InternshipApplication *applications, int *count);
+void clearScreen(); // Function to clear terminal screen
+
 void encrypt(char *text, int shift) {
     for (int i = 0; text[i] != '\0'; i++) {
         if (isalpha(text[i])) {
@@ -33,12 +52,11 @@ void encrypt(char *text, int shift) {
 }
 
 void decrypt(char *text, int shift) {
-    encrypt(text, 26 - shift);
+    encrypt(text, 26 - shift); // Decrypt by shifting backwards
 }
 
 int isValidDate(char *date) {
     int dd, mm, yyyy;
-
     if (sscanf(date, "%d/%d/%d", &dd, &mm, &yyyy) != 3)
         return 0;
 
@@ -69,14 +87,6 @@ int isValidCompanyName(char *company) {
     return 1;
 }
 
-void clearScreen() {
-#ifdef _WIN32
-    system("cls"); // For Windows
-#else
-    system("clear"); // For Unix-based systems
-#endif
-}
-
 void saveApplicationToFile(InternshipApplication *application) {
     FILE *file = fopen(FILENAME, "a");
     if (file == NULL) {
@@ -88,10 +98,10 @@ void saveApplicationToFile(InternshipApplication *application) {
     char encryptedMethod[MAX_STRING_LENGTH];
     char encryptedStatus[MAX_STRING_LENGTH];
     
-    strcpy(encryptedCompany, application->company);
-    strcpy(encryptedJobTitle, application->jobTitle);
-    strcpy(encryptedMethod, application->applicationMethod);
-    strcpy(encryptedStatus, application->status);
+    strncpy(encryptedCompany, application->company, MAX_STRING_LENGTH);
+    strncpy(encryptedJobTitle, application->jobTitle, MAX_STRING_LENGTH);
+    strncpy(encryptedMethod, application->applicationMethod, MAX_STRING_LENGTH);
+    strncpy(encryptedStatus, application->status, MAX_STRING_LENGTH);
     
     encrypt(encryptedCompany, SHIFT);
     encrypt(encryptedJobTitle, SHIFT);
@@ -114,10 +124,10 @@ void saveAllApplicationsToFile(InternshipApplication *applications, int count) {
         char encryptedMethod[MAX_STRING_LENGTH];
         char encryptedStatus[MAX_STRING_LENGTH];
         
-        strcpy(encryptedCompany, applications[i].company);
-        strcpy(encryptedJobTitle, applications[i].jobTitle);
-        strcpy(encryptedMethod, applications[i].applicationMethod);
-        strcpy(encryptedStatus, applications[i].status);
+        strncpy(encryptedCompany, applications[i].company, MAX_STRING_LENGTH);
+        strncpy(encryptedJobTitle, applications[i].jobTitle, MAX_STRING_LENGTH);
+        strncpy(encryptedMethod, applications[i].applicationMethod, MAX_STRING_LENGTH);
+        strncpy(encryptedStatus, applications[i].status, MAX_STRING_LENGTH);
         
         encrypt(encryptedCompany, SHIFT);
         encrypt(encryptedJobTitle, SHIFT);
@@ -132,6 +142,7 @@ void saveAllApplicationsToFile(InternshipApplication *applications, int count) {
 void loadApplicationsFromFile(InternshipApplication *applications, int *count) {
     FILE *file = fopen(FILENAME, "r");
     if (file == NULL) {
+        printf("No existing application data found. Starting fresh.\n");
         return;
     }
     
@@ -174,7 +185,6 @@ void createBackup() {
     fclose(backup);
     
     printf("Backup created successfully.\n");
-    clearScreen();
 }
 
 void restoreFromBackup() {
@@ -199,7 +209,6 @@ void restoreFromBackup() {
     fclose(destination);
     
     printf("Data restored from backup successfully.\n");
-    clearScreen();
 }
 
 void displayStatistics(InternshipApplication *applications, int count) {
@@ -239,12 +248,13 @@ void displayStatistics(InternshipApplication *applications, int count) {
             }
         }
         if (!found) {
-            strcpy(companies[companyCount], applications[i].company);
+            strncpy(companies[companyCount], applications[i].company, MAX_STRING_LENGTH);
             companyCounts[companyCount] = 1;
             companyCount++;
         }
     }
 
+    clearScreen();
     printf("\nStatistics:\n");
     printf("------------------------------------------------------------\n");
     printf("Total Applications: %d\n", count);
@@ -258,68 +268,56 @@ void displayStatistics(InternshipApplication *applications, int count) {
         printf("%s: %d\n", companies[i], companyCounts[i]);
     }
     printf("------------------------------------------------------------\n");
-    getchar();
+
+    getchar();  // Wait for user input to close
     clearScreen();
 }
 
 int compareDates(const void *a, const void *b) {
-    InternshipApplication *app1 = (InternshipApplication *)a;
-    InternshipApplication *app2 = (InternshipApplication *)b;
-    
-    int dd1, mm1, yyyy1;
-    int dd2, mm2, yyyy2;
-    
-    sscanf(app1->date, "%d/%d/%d", &dd1, &mm1, &yyyy1);
-    sscanf(app2->date, "%d/%d/%d", &dd2, &mm2, &yyyy2);
-    
-    if (yyyy1 != yyyy2) {
-        return yyyy2 - yyyy1; 
-    } else if (mm1 != mm2) {
-        return mm2 - mm1; 
-    } else {
-        return dd2 - dd1; 
-    }
+    return strcmp(((InternshipApplication *)a)->date, ((InternshipApplication *)b)->date);
 }
 
 void addApplication(InternshipApplication *applications, int *count) {
+    if (*count >= MAX_APPLICATIONS) {
+        printf("Application limit reached.\n");
+        return;
+    }
+
     InternshipApplication newApplication;
-    
-    clearScreen();
-    printf("Enter date (dd/mm/yyyy): ");
-    scanf(" %s", newApplication.date);
+    printf("Enter application date (dd/mm/yyyy): ");
+    scanf("%s", newApplication.date);
     if (!isValidDate(newApplication.date)) {
         printf("Invalid date format.\n");
         return;
     }
-    
+
     printf("Enter company name: ");
     scanf(" %[^\n]", newApplication.company);
     if (!isValidCompanyName(newApplication.company)) {
         printf("Invalid company name.\n");
         return;
     }
-    
+
     printf("Enter job title: ");
     scanf(" %[^\n]", newApplication.jobTitle);
-    
-    printf("Enter application method (e.g., online, referral, etc.): ");
+
+    printf("Enter application method: ");
     scanf(" %[^\n]", newApplication.applicationMethod);
-    
-    printf("Enter application status (Pending, Interviewed, Rejected, Accepted): ");
+
+    printf("Enter application status (Pending/Interviewed/Rejected/Accepted): ");
     scanf(" %[^\n]", newApplication.status);
 
     applications[*count] = newApplication;
     (*count)++;
-    saveApplicationToFile(&newApplication);
     
+    saveApplicationToFile(&newApplication);
     printf("Application added successfully.\n");
-    clearScreen();
 }
 
 void listApplications(InternshipApplication *applications, int count) {
     if (count == 0) {
         printf("\nNo applications to display.\n");
-        getchar();
+        getchar();  // Wait for user input to close
         clearScreen();
         return;
     }
@@ -337,35 +335,33 @@ void listApplications(InternshipApplication *applications, int count) {
         printf("Status: %s\n", applications[i].status);
         printf("------------------------------------------------------------\n");
     }
-    getchar();
+    getchar();  // Wait for user input to close
+    clearScreen();
 }
 
 void registerUser() {
     FILE *file = fopen(USER_DATA_FILE, "a");
     if (file == NULL) {
-        printf("Error opening file for user registration.\n");
+        printf("Error opening user data file.\n");
         return;
     }
-    
+
     User newUser;
     printf("Enter username: ");
-    scanf(" %s", newUser.username);
+    scanf("%s", newUser.username);
     printf("Enter password: ");
-    scanf(" %s", newUser.password);
+    scanf("%s", newUser.password);
 
-    encrypt(newUser.password, SHIFT);
-    
-    fprintf(file, "%s|%s\n", newUser.username, newUser.password);
+    fprintf(file, "%s %s\n", newUser.username, newUser.password);
+
     fclose(file);
-    
     printf("User registered successfully.\n");
-    clearScreen();
 }
 
 int authenticateUser() {
     FILE *file = fopen(USER_DATA_FILE, "r");
     if (file == NULL) {
-        printf("Error opening file for authentication.\n");
+        printf("Error opening user data file.\n");
         return 0;
     }
 
@@ -373,15 +369,13 @@ int authenticateUser() {
     char password[MAX_STRING_LENGTH];
     char storedUsername[MAX_STRING_LENGTH];
     char storedPassword[MAX_STRING_LENGTH];
-    
+
     printf("Enter username: ");
-    scanf(" %s", username);
+    scanf("%s", username);
     printf("Enter password: ");
-    scanf(" %s", password);
-    
-    encrypt(password, SHIFT);
-    
-    while (fscanf(file, "%[^|]|%[^\n]\n", storedUsername, storedPassword) != EOF) {
+    scanf("%s", password);
+
+    while (fscanf(file, "%s %s", storedUsername, storedPassword) != EOF) {
         if (strcmp(username, storedUsername) == 0 && strcmp(password, storedPassword) == 0) {
             fclose(file);
             return 1;
@@ -389,7 +383,6 @@ int authenticateUser() {
     }
 
     fclose(file);
-    printf("Invalid username or password.\n");
     return 0;
 }
 
@@ -411,7 +404,7 @@ void displayMainMenu(InternshipApplication *applications, int *count) {
                 addApplication(applications, count);
                 break;
             case 2:
-                listApplications(applications, *count);
+                listApplications(applications, *count);  // Correctly pass the count
                 break;
             case 3:
                 displayStatistics(applications, *count);
@@ -431,32 +424,40 @@ void displayMainMenu(InternshipApplication *applications, int *count) {
     } while (choice != 6);
 }
 
+void clearScreen() {
+#ifdef _WIN32
+    system("cls");
+#else
+    system("clear");
+#endif
+}
+
 int main() {
     InternshipApplication applications[MAX_APPLICATIONS];
     int count = 0;
 
-    int authenticated = 0;
-    while (!authenticated) {
-        clearScreen();
-        printf("1. Register\n");
-        printf("2. Login\n");
-        printf("Enter your choice: ");
-        int choice;
-        scanf("%d", &choice);
-        switch (choice) {
-            case 1:
-                registerUser();
-                break;
-            case 2:
-                authenticated = authenticateUser();
-                break;
-            default:
-                printf("Invalid choice. Please try again.\n");
+    loadApplicationsFromFile(applications, &count);
+
+    printf("Welcome to the Internship Application Tracker\n");
+    printf("1. Register\n");
+    printf("2. Login\n");
+    int option;
+    scanf("%d", &option);
+
+    if (option == 1) {
+        registerUser();
+        
+    } else if (option == 2) {
+        if (authenticateUser()) {
+            printf("Login successful.\n");
+            displayMainMenu(applications, &count);
+        } else {
+            printf("Login failed.\n");
         }
+    } else {
+        printf("Invalid option.\n");
     }
 
-    loadApplicationsFromFile(applications, &count);
-    displayMainMenu(applications, &count);
     saveAllApplicationsToFile(applications, count);
 
     return 0;
