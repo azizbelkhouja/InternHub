@@ -6,6 +6,7 @@
 #define MAX_APPLICATIONS 100
 #define MAX_STRING_LENGTH 100
 #define FILENAME "applications.txt"
+#define SHIFT 3
 
 typedef struct {
     char date[MAX_STRING_LENGTH];
@@ -14,6 +15,19 @@ typedef struct {
     char applicationMethod[MAX_STRING_LENGTH];
     char status[MAX_STRING_LENGTH];
 } InternshipApplication;
+
+void encrypt(char *text, int shift) {
+    for (int i = 0; text[i] != '\0'; i++) {
+        if (isalpha(text[i])) {
+            char base = islower(text[i]) ? 'a' : 'A';
+            text[i] = (text[i] - base + shift) % 26 + base;
+        }
+    }
+}
+
+void decrypt(char *text, int shift) {
+    encrypt(text, 26 - shift);
+}
 
 int isValidDate(char *date) {
     int dd, mm, yyyy;
@@ -54,7 +68,22 @@ void saveApplicationToFile(InternshipApplication *application) {
         printf("Error opening file for writing.\n");
         return;
     }
-    fprintf(file, "%s|%s|%s|%s|%s\n", application->date, application->company, application->jobTitle, application->applicationMethod, application->status);
+    char encryptedCompany[MAX_STRING_LENGTH];
+    char encryptedJobTitle[MAX_STRING_LENGTH];
+    char encryptedMethod[MAX_STRING_LENGTH];
+    char encryptedStatus[MAX_STRING_LENGTH];
+    
+    strcpy(encryptedCompany, application->company);
+    strcpy(encryptedJobTitle, application->jobTitle);
+    strcpy(encryptedMethod, application->applicationMethod);
+    strcpy(encryptedStatus, application->status);
+    
+    encrypt(encryptedCompany, SHIFT);
+    encrypt(encryptedJobTitle, SHIFT);
+    encrypt(encryptedMethod, SHIFT);
+    encrypt(encryptedStatus, SHIFT);
+    
+    fprintf(file, "%s|%s|%s|%s|%s\n", application->date, encryptedCompany, encryptedJobTitle, encryptedMethod, encryptedStatus);
     fclose(file);
 }
 
@@ -65,7 +94,22 @@ void saveAllApplicationsToFile(InternshipApplication *applications, int count) {
         return;
     }
     for (int i = 0; i < count; i++) {
-        fprintf(file, "%s|%s|%s|%s|%s\n", applications[i].date, applications[i].company, applications[i].jobTitle, applications[i].applicationMethod, applications[i].status);
+        char encryptedCompany[MAX_STRING_LENGTH];
+        char encryptedJobTitle[MAX_STRING_LENGTH];
+        char encryptedMethod[MAX_STRING_LENGTH];
+        char encryptedStatus[MAX_STRING_LENGTH];
+        
+        strcpy(encryptedCompany, applications[i].company);
+        strcpy(encryptedJobTitle, applications[i].jobTitle);
+        strcpy(encryptedMethod, applications[i].applicationMethod);
+        strcpy(encryptedStatus, applications[i].status);
+        
+        encrypt(encryptedCompany, SHIFT);
+        encrypt(encryptedJobTitle, SHIFT);
+        encrypt(encryptedMethod, SHIFT);
+        encrypt(encryptedStatus, SHIFT);
+        
+        fprintf(file, "%s|%s|%s|%s|%s\n", applications[i].date, encryptedCompany, encryptedJobTitle, encryptedMethod, encryptedStatus);
     }
     fclose(file);
 }
@@ -82,6 +126,11 @@ void loadApplicationsFromFile(InternshipApplication *applications, int *count) {
                   applications[*count].jobTitle, 
                   applications[*count].applicationMethod,
                   applications[*count].status) != EOF) {
+        decrypt(applications[*count].company, SHIFT);
+        decrypt(applications[*count].jobTitle, SHIFT);
+        decrypt(applications[*count].applicationMethod, SHIFT);
+        decrypt(applications[*count].status, SHIFT);
+        
         (*count)++;
     }
 
@@ -184,73 +233,56 @@ void addApplication(InternshipApplication *applications, int *count) {
 
 void updateApplicationStatus(InternshipApplication *applications, int count) {
     if (count == 0) {
-        printf("\nNo applications available to update.\n");
+        printf("\nNo applications to update.\n");
         getchar();
         return;
     }
 
-    system("cls");
-    printf("\nSelect the application to update:\n");
+    char companyName[MAX_STRING_LENGTH];
+    char jobTitle[MAX_STRING_LENGTH];
+    printf("\nEnter the company name of the application to update: ");
+    fgets(companyName, MAX_STRING_LENGTH, stdin);
+    companyName[strcspn(companyName, "\n")] = 0;
+    printf("Enter the job title of the application to update: ");
+    fgets(jobTitle, MAX_STRING_LENGTH, stdin);
+    jobTitle[strcspn(jobTitle, "\n")] = 0;
+
+    int found = 0;
     for (int i = 0; i < count; i++) {
-        printf("  %d. %s - %s (Current Status: %s)\n", i + 1, applications[i].company, applications[i].jobTitle, applications[i].status);
-    }
-    printf("Enter the number corresponding to the application: ");
-    int choice;
-    scanf("%d", &choice);
-    getchar(); 
-
-    if (choice < 1 || choice > count) {
-        printf("Invalid selection. Returning to main menu.\n");
-        getchar();
-        return;
-    }
-
-    int statusChoice;
-    printf("\nSelect the new status:\n");
-    printf("  1. Accepted\n");
-    printf("  2. Rejected\n");
-    printf("  3. Pending\n");
-    printf("Enter the number corresponding to the new status: ");
-    scanf("%d", &statusChoice);
-    getchar();
-
-    switch (statusChoice) {
-        case 1:
-            strcpy(applications[choice - 1].status, "Accepted");
+        if (strcmp(applications[i].company, companyName) == 0 && strcmp(applications[i].jobTitle, jobTitle) == 0) {
+            printf("\nCurrent status: %s\n", applications[i].status);
+            printf("Enter new status: ");
+            fgets(applications[i].status, MAX_STRING_LENGTH, stdin);
+            applications[i].status[strcspn(applications[i].status, "\n")] = 0;
+            saveAllApplicationsToFile(applications, count);
+            system("cls");
+            printf("\nStatus updated successfully.\n");
+            found = 1;
             break;
-        case 2:
-            strcpy(applications[choice - 1].status, "Rejected");
-            break;
-        case 3:
-            strcpy(applications[choice - 1].status, "Pending");
-            break;
-        default:
-            printf("Invalid choice. Status not updated.\n");
-            getchar();
-            return;
+        }
     }
-
-    saveAllApplicationsToFile(applications, count);
-    system("cls");
-    printf("\nApplication status updated successfully.\n");
+    if (!found) {
+        printf("\nNo matching application found to update.\n");
+    }
 }
 
 void searchApplications(InternshipApplication *applications, int count) {
     if (count == 0) {
-        printf("\nNo applications available to search.\n");
+        printf("\nNo applications to search.\n");
         getchar();
         return;
     }
 
     int searchChoice;
-    char searchQuery[MAX_STRING_LENGTH];
     system("cls");
-    printf("\nSearch by:\n");
-    printf("  1. Company Name\n");
-    printf("  2. Job Title\n");
+    printf("\nSearch options:\n");
+    printf("  1. By Company Name\n");
+    printf("  2. By Job Title\n");
     printf("Enter the number corresponding to your choice: ");
     scanf("%d", &searchChoice);
     getchar();
+
+    char searchQuery[MAX_STRING_LENGTH];
 
     if (searchChoice == 1) {
         printf("\nEnter the company name to search: ");
@@ -412,7 +444,7 @@ int main() {
         printf("  1. Add New Application\n");
         printf("  2. Display All Applications\n");
         printf("  3. Update Application Status\n");
-        printf("  4. Search Applications\n"); 
+        printf("  4. Search Applications\n");
         printf("  5. Delete Application(s)\n");
         printf("  6. Exit\n");
         printf("------------------------------------------------------------\n");
