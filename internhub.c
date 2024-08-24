@@ -69,6 +69,14 @@ int isValidCompanyName(char *company) {
     return 1;
 }
 
+void clearScreen() {
+#ifdef _WIN32
+    system("cls"); // For Windows
+#else
+    system("clear"); // For Unix-based systems
+#endif
+}
+
 void saveApplicationToFile(InternshipApplication *application) {
     FILE *file = fopen(FILENAME, "a");
     if (file == NULL) {
@@ -166,6 +174,7 @@ void createBackup() {
     fclose(backup);
     
     printf("Backup created successfully.\n");
+    clearScreen();
 }
 
 void restoreFromBackup() {
@@ -190,12 +199,14 @@ void restoreFromBackup() {
     fclose(destination);
     
     printf("Data restored from backup successfully.\n");
+    clearScreen();
 }
 
 void displayStatistics(InternshipApplication *applications, int count) {
     if (count == 0) {
         printf("\nNo applications to display statistics.\n");
         getchar();
+        clearScreen();
         return;
     }
 
@@ -234,7 +245,6 @@ void displayStatistics(InternshipApplication *applications, int count) {
         }
     }
 
-    
     printf("\nStatistics:\n");
     printf("------------------------------------------------------------\n");
     printf("Total Applications: %d\n", count);
@@ -249,6 +259,7 @@ void displayStatistics(InternshipApplication *applications, int count) {
     }
     printf("------------------------------------------------------------\n");
     getchar();
+    clearScreen();
 }
 
 int compareDates(const void *a, const void *b) {
@@ -273,6 +284,7 @@ int compareDates(const void *a, const void *b) {
 void addApplication(InternshipApplication *applications, int *count) {
     InternshipApplication newApplication;
     
+    clearScreen();
     printf("Enter date (dd/mm/yyyy): ");
     scanf(" %s", newApplication.date);
     if (!isValidDate(newApplication.date)) {
@@ -301,18 +313,20 @@ void addApplication(InternshipApplication *applications, int *count) {
     saveApplicationToFile(&newApplication);
     
     printf("Application added successfully.\n");
+    clearScreen();
 }
 
 void listApplications(InternshipApplication *applications, int count) {
     if (count == 0) {
         printf("\nNo applications to display.\n");
         getchar();
+        clearScreen();
         return;
     }
 
     qsort(applications, count, sizeof(InternshipApplication), compareDates);
 
-    
+    clearScreen();
     printf("\nApplications:\n");
     printf("------------------------------------------------------------\n");
     for (int i = 0; i < count; i++) {
@@ -345,6 +359,7 @@ void registerUser() {
     fclose(file);
     
     printf("User registered successfully.\n");
+    clearScreen();
 }
 
 int authenticateUser() {
@@ -381,7 +396,7 @@ int authenticateUser() {
 void displayMainMenu(InternshipApplication *applications, int *count) {
     int choice;
     do {
-        
+        clearScreen();
         printf("Application Tracker\n");
         printf("1. Add Application\n");
         printf("2. List Applications\n");
@@ -422,7 +437,7 @@ int main() {
 
     int authenticated = 0;
     while (!authenticated) {
-        
+        clearScreen();
         printf("1. Register\n");
         printf("2. Login\n");
         printf("Enter your choice: ");
