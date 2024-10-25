@@ -15,7 +15,7 @@ A console-based application to manage and track internship applications. This pr
 
 ## Requirements
 
-- A C compiler (e.g., GCC)
+- C compiler (e.g., GCC)
 - Standard C library
 
 ## File Structure
